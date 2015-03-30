@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+<html xmlns="http://www.w3.org/1999/xhtml">  
+<head id="Head1" runat="server">  
+    <title>google map</title> 
+     
+    <style type="text/css">  
+        body  
+        {  
+            font-family: Verdana, Arial, sans serif;  
+            font-size: 11px;  
+            margin: 2px;  
+        }  
+        table.directions th  
+        {  
+            background-color: #EEEEEE;  
+        }  
+        img  
+        {  
+            color: #000000;  
+        }  
+    </style>  
+   
+    <script src="http://maps.google.com/maps?file=api&v=2&hl=en-US&sensor=false"  
+        type="text/javascript"></script> 
+     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script> 
+    
+    <script type="text/javascript">  
+   		var i=1;  
+   		var map;  
+   		var currentOverlay = null;  
+   		var geocoder;  
+   		var address;  
+   		var gdir;  
+   		var addressMarker;  
+   		var lat;
+   		var lng;
+   	
+   	
+   		//get location
+   		jQuery(window).ready(function(){
+	   		jQuery("#btnInit").click(initiate_geolocation);
+	   	});
+	
+	   	function initiate_geolocation() {
+		   	navigator.geolocation.getCurrentPosition(handle_geolocation_query);
+		}
+		//get user's latitude and longitude
+		function handle_geolocation_query(position){
+			lat=position.coords.latitude;
+			lng=position.coords.longitude;
+			alert('Your current location: Latitude: ' + lat + ', ' +
+			'Longitude: ' + lng);
+			document.getElementById('lat').value=lat;
+			document.getElementById('lng').value=lng;
+	
+			var latlng = new google.maps.LatLng(lat,lng);
+			address = latlng;
+			geocoder.getLocations(latlng, showAddress2); 
+		}
+ 
+		function showAddress2(response) {  
+	      map.clearOverlays();  
+	      if (!response || response.Status.code != 200) {  
+	        alert("HTTP state code:" + response.Status.code);  
+	      } else {  
+	        point = new GLatLng(lat,  
+	                            lng);  
+	        map.setCenter(point, 14); 
+	        marker = new GMarker(point);  
+	    
+	        map.addOverlay(marker);  
+	        marker.openInfoWindowHtml(  
+	        '<b>Location:</b>' + lat + "," + lng + '<br>' +  
+	        '<b>Address:</b>' + place.address); 
+	      }
+	      document.getElementById("lat").value=lat;  
+	      document.getElementById("lng").value=lng;  
+	    }  
+
+   		
+   		
+   		
+   		function load() {  
+	   	//GBroswerIsCompatible() compatibility between api and browser  
+        if (GBrowserIsCompatible()) {  
+            map = new GMap2(document.getElementById("map"));
+            lat = 40.6940741;
+            lng = -73.9869325;
+            var point = new GLatLng(40.6940741,-73.9869325);  
+            map.setCenter(point,14);    
+            map.addControl(new GMapTypeControl());          
+            var customUI = map.getDefaultUI();  
+            //Remove MapType.G_HYBRID_MAP  
+            customUI.maptypes.hybrid = false;  
+            map.enableDoubleClickZoom();  
+            map.setUI(customUI);  
+        
+            var marker = new GMarker(point);  
+      
+            map.addOverlay(marker);  
+            geocoder = new GClientGeocoder();  
+            geocoder.getLocations("nyu-poly", function (response) {  
+	            place = response.Placemark[0];  
+	            marker.openInfoWindowHtml(  
+	            '<b>Location:</b>' + place.Point.coordinates[1] + "," + place.Point.coordinates[0] + '<br>' +  
+	            '<b>Address:</b>' + place.address);
+	            }  
+	        )  
+	        GEvent.addListener(map,'click',getAddress);  
+          
+	        map.addControl(new GScaleControl());//map components, map scale component  
+	        //    map.addControl(new GOverviewMapControl(new GSize(200, 200))); //eagle-eye map 
+	        }  
+	    }  
+	    
+	    function removeCurrentOverlay() {
+	    	map.removeOverlay(currentOverlay);
+	    }  
+  
+	    function getAddress(overlay, latlng) {  
+	      if (latlng != null) {  
+	        address = latlng;  
+	        geocoder.getLocations(latlng, showAddress);  
+	      }  
+	    }  
+  
+        function showAddress(response) {  
+	      map.clearOverlays();  
+	      if (!response || response.Status.code != 200) {  
+	        alert("HTTP state code:" + response.Status.code);  
+	      } else {  
+	        place = response.Placemark[0]; 
+	        lat=place.Point.coordinates[1];
+	        lng=place.Point.coordinates[0]; 
+	        point = new GLatLng(lat,  
+	                            lng);  
+	        marker = new GMarker(point);  
+	    
+	        map.addOverlay(marker);  
+	        marker.openInfoWindowHtml(  
+	        '<b>Location:</b>' + lat + "," + lng + '<br>' +  
+	        '<b>Address:</b>' + place.address); 
+	      }
+	      document.getElementById("lat").value=lat;  
+	      document.getElementById("lng").value=lng;  
+	    }  
+  
+       ///address search  
+       	function showAddr(address) { 
+	      if (geocoder) {  
+	        geocoder.getLatLng(  
+	          address,  
+	          function(point) {  
+	            if (!point) {  
+	              alert("cannot search: " + address);  
+	            } else {  
+	              map.setCenter(point, 14);  
+	            }  
+	            geocoder.getLocations(address, showAddress);  
+	          }  
+	        );  
+	      } 
+	    }
+	    
+	    //value back
+	    function valueback() { 
+           window.returnValue=document.getElementById("lat").value+', '+document.getElementById("lng").value; 
+           window.close();
+        } 
+        
+
+	     
+    </script>  
+  
+</head>  
+<body onload="load()" onunload="GUnload()">  
+ <div style="height:0px"></div>  
+ 
+ <div style="float: left; height: 550;">  
+      <p><strong>Get Your Current Location: </strong><button id="btnInit" >Locate</button></p>
+
+      <form action="#" onsubmit="showAddr(this.address.value); return false">  
+      <strong>Search Location:</strong><input type="text" name="address" value="nyu-poly" />  
+      <input type="submit" value="search" /> 
+      
+      </form>
+
+      <from action="#" name="form2">
+      <p>
+      <strong>Latitude: </strong><input type="text" name="lat" id="lat" value=""/>
+      <strong>Longitude: </strong><input type="text" name="lng" id="lng" value=""/>
+      <a onclick="javascript:valueback()"><input type="submit" value="select"/></a>
+      </p>
+ </div>  
+
+ <div style="height:50px"></div>  
+ <div id="map" style="width: 99%; height: 500px; border: solid 1px #999; float: left"></div>  
+</body>  
+</html>
